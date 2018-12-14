@@ -1,6 +1,7 @@
-let IndyReq = require('indy-request')
-let bs58 = require('bs58')
-let nacl = require('tweetnacl')
+const IndyReq = require('indy-request')
+const bs58 = require('bs58')
+const nacl = require('tweetnacl')
+const indyCrypto = require('./indy-crypto/node/indy_crypto')
 
 let SERVERKEY = bs58.decode('HXrfcFWDjWusENBoXhV8mARzq51f1npWYWaA1GzfeMDG')
 
@@ -71,8 +72,8 @@ async function main () {
       tag: 'something-cool',
 
       data: {
-        primary: { key: my1DID }, // TODO is this right?
-        revocation: { key: my1DID }// TODO is this right?
+        primary: { key: my1Verkey }, // TODO is this right?
+        revocation: { key: my1Verkey }// TODO is this right?
       }
     },
     identifier: my1DID,
