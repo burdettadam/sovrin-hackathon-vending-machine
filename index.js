@@ -3,9 +3,11 @@ const bs58 = require('bs58')
 const nacl = require('tweetnacl')
 const indyCrypto = require('./indy-crypto/node/indy_crypto')
 
+//key taken from genesis file
 let SERVERKEY = bs58.decode('HXrfcFWDjWusENBoXhV8mARzq51f1npWYWaA1GzfeMDG')
 
 async function main () {
+  // node configuration, taken from genesis file
   let node = IndyReq({
     host: '127.0.0.1',
     port: 9702,
@@ -21,14 +23,16 @@ async function main () {
   node.on('close', function () {
     console.log('got close')
   })
-
-  let my1 = nacl.sign.keyPair.fromSeed(Buffer.from('00000000000000000000000000000My1', 'utf8'))
+  // generate key pair
+  let my1    = nacl.sign.keyPair.fromSeed(Buffer.from('00000000000000000000000000000My1', 'utf8'))
   let sender = nacl.sign.keyPair.fromSeed(Buffer.from('000000000000000000000000Trustee1', 'utf8'))
-
-  let my1DID = bs58.encode(Buffer.from(my1.publicKey.slice(0, 16)))
+  // create did from public key
+  let my1DID    = bs58.encode(Buffer.from(my1.publicKey.slice(0, 16)))
   let my1Verkey = bs58.encode(Buffer.from(my1.publicKey))
   let senderDID = bs58.encode(Buffer.from(sender.publicKey.slice(0, 16)))
 
+  // anchor nym to ledger with trustee role
+  console.log('Anchor NYM')
   let resp = await node.send({
     operation: {
       type: IndyReq.type.NYM,
@@ -43,7 +47,8 @@ async function main () {
   console.log('NYM resp:')
   console.log(resp)
 
-  console.log('Going to SCHEMA')
+  // anchor schema
+  console.log('Anchor SCHEMA')
   resp = await node.send({
     operation: {
       type: IndyReq.type.SCHEMA,
@@ -59,8 +64,12 @@ async function main () {
 
   console.log('SCHEMA resp:')
   console.log(resp)
+
   const schemaSeqNo = resp.result.txnMetadata.seqNo
 
+  // create credential definition 
+  // 
+  // anchor credential definition
   console.log('Going to CRED_DEF')
   resp = await node.send({
     operation: {
