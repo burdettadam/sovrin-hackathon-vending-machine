@@ -4,13 +4,6 @@ let nacl = require('tweetnacl')
 
 let SERVERKEY = bs58.decode('HXrfcFWDjWusENBoXhV8mARzq51f1npWYWaA1GzfeMDG')
 
-const roles = {
-  TRUSTEE: '0',
-  STEWARD: '2',
-  TRUST_ANCHOR: '101',
-  ROLE_REMOVE: ''
-}
-
 async function main () {
   let node = IndyReq({
     host: '127.0.0.1',
@@ -37,9 +30,9 @@ async function main () {
 
   let resp = await node.send({
     operation: {
-      type: IndyReq.type.NYM + '',
+      type: IndyReq.type.NYM,
       dest: my1DID,
-      role: roles.TRUSTEE,
+      role: IndyReq.role.TRUSTEE,
       verkey: my1Verkey
     },
     identifier: senderDID,
@@ -52,7 +45,7 @@ async function main () {
   console.log('Going to SCHEMA')
   resp = await node.send({
     operation: {
-      type: IndyReq.type.SCHEMA + '',
+      type: IndyReq.type.SCHEMA,
       data: {
         version: '1.0',
         name: 'Perscription',
@@ -64,6 +57,29 @@ async function main () {
   }, my1.secretKey)
 
   console.log('SCHEMA resp:')
+  console.log(resp)
+  const schemaSeqNo = resp.result.txnMetadata.seqNo
+
+  console.log('Going to CRED_DEF')
+  resp = await node.send({
+    operation: {
+      type: IndyReq.type.CRED_DEF,
+
+      signature_type: 'CL',
+
+      ref: schemaSeqNo,
+      tag: 'something-cool',
+
+      data: {
+        primary: { key: my1DID }, // TODO is this right?
+        revocation: { key: my1DID }// TODO is this right?
+      }
+    },
+    identifier: my1DID,
+    protocolVersion: 2
+  }, my1.secretKey)
+
+  console.log('CRED_DEF resp:')
   console.log(resp)
 
   node.close()
